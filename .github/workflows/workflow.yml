@@ -276,6 +276,9 @@ jobs:
           export PATH="$HOME/.venv/bin:$PATH"
           cd zephyr-workspace
           west zephyr-export
+      
+      - name: 🔧 Pin CMake 3.x
+        run: ~/.venv/bin/pip install "cmake<4"
 
       - name: 📦 Restore Repository
         id: restore-repository
