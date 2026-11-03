@@ -18,5 +18,7 @@ CONFIG_FLASH_LOAD_OFFSET=0x1000
 
 # Mochi has no external 32.768 kHz crystal on XL1/XL2; an external source
 # makes LFCLK fail to start and the IMU is never detected.
-# Synthesize LFCLK from HFCLK (higher power, but TDMA-safe).
-CONFIG_CLOCK_SOURCE_LFCLK_SYNTH=y
+# Stay on the boot-time calibrated RC LFCLK (no runtime switch), like the
+# working smol firmware. Switching to SYNTH stops the kernel timer whenever
+# HFCLK is released, which freezes k_msleep()/k_uptime_get() and the button thread.
+CONFIG_CLOCK_SOURCE_LFCLK_RC=y
