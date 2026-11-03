@@ -15,3 +15,6 @@ CONFIG_SENSOR_ROTATION_0=y
 #generate for adafruit uf2 bootloader flashing
 CONFIG_BUILD_OUTPUT_UF2=y
 CONFIG_FLASH_LOAD_OFFSET=0x1000
+
+# Test Mochi with clock yes.
+CONFIG_CLOCK_SOURCE_LFCLK_XTAL=y
