@@ -195,6 +195,8 @@ jobs:
                   # Same source, only the low-frequency clock source differs
                   {boardname: "mochi_uf2/nrf52833", fileformat: "uf2", filename: "SlimeNRF_Mochi_Tracker_LFCLK_RC_NoMag", lfclk: "RC", mag: "n"},
                   {boardname: "mochi_uf2/nrf52833", fileformat: "uf2", filename: "SlimeNRF_Mochi_Tracker_LFCLK_SYNTH_NoMag", lfclk: "SYNTH", mag: "n"},
+                  # SYNTH selected in the Zephyr clock driver from boot: no runtime clock switch, no RC calibration
+                  {boardname: "mochi_uf2/nrf52833", fileformat: "uf2", filename: "SlimeNRF_Mochi_Tracker_LFCLK_SYNTH_AtBoot_NoMag", lfclk: "RC", mag: "n", label: "SYNTH at boot", extra: "-DCONFIG_CLOCK_CONTROL_NRF_K32SRC_SYNTH=y -DCONFIG_CLOCK_CONTROL_NRF_K32SRC_RC_CALIBRATION=n"},
                   {boardname: "mochi_uf2/nrf52833", fileformat: "uf2", filename: "SlimeNRF_Mochi_Tracker_LFCLK_RC_Mag", lfclk: "RC", mag: "y"},
                   {boardname: "mochi_uf2/nrf52833", fileformat: "uf2", filename: "SlimeNRF_Mochi_Tracker_LFCLK_SYNTH_Mag", lfclk: "SYNTH", mag: "y"},
                   # {boardname: "promicro_uf2/nrf52840/i2c", fileformat: "uf2", filename: "SlimeNRF_ProMicro_I2C_Tracker"},
@@ -297,7 +299,7 @@ jobs:
         id: build-firmware
         run: |
           cd zephyr-workspace
-          sed -i "/printk(FW_STRING);/a printk(\"Repo: ${{ needs.setup.outputs.repo }}@${{ needs.setup.outputs.branch }} | SDK: ${{ needs.setup.outputs.sdk-revision }}${{ matrix.boards.lfclk && format(' | LFCLK: {0}', matrix.boards.lfclk) || '' }}${{ matrix.boards.mag && format(' | MAG: {0}', matrix.boards.mag) || '' }}\\\\n\");" SlimeVR-Tracker-nRF/src/console.c
+          sed -i "/printk(FW_STRING);/a printk(\"Repo: ${{ needs.setup.outputs.repo }}@${{ needs.setup.outputs.branch }} | SDK: ${{ needs.setup.outputs.sdk-revision }}${{ matrix.boards.lfclk && format(' | LFCLK: {0}', matrix.boards.label || matrix.boards.lfclk) || '' }}${{ matrix.boards.mag && format(' | MAG: {0}', matrix.boards.mag) || '' }}\\\\n\");" SlimeVR-Tracker-nRF/src/console.c
           sudo rm -rf Releases
           mkdir -p Releases
           rm -rf "SlimeVR-Tracker-nRF/build"
@@ -309,9 +311,10 @@ jobs:
               -DNCS_TOOLCHAIN_VERSION=NONE \
               -DBOARD_ROOT=../"SlimeVR-Tracker-nRF" \
               ${{ matrix.boards.lfclk && format('-DCONFIG_CLOCK_SOURCE_LFCLK_{0}=y', matrix.boards.lfclk) || '' }} \
-              ${{ matrix.boards.mag && format('-DCONFIG_SENSOR_USE_MAG={0}', matrix.boards.mag) || '' }}
+              ${{ matrix.boards.mag && format('-DCONFIG_SENSOR_USE_MAG={0}', matrix.boards.mag) || '' }} \
+              ${{ matrix.boards.extra }}
 
-          grep -E "CONFIG_CLOCK_SOURCE_LFCLK|CONFIG_SENSOR_USE_MAG" SlimeVR-Tracker-nRF/build/SlimeVR-Tracker-nRF/zephyr/.config
+          grep -E "CONFIG_CLOCK_SOURCE_LFCLK|CONFIG_SENSOR_USE_MAG|CONFIG_CLOCK_CONTROL_NRF_K32SRC" SlimeVR-Tracker-nRF/build/SlimeVR-Tracker-nRF/zephyr/.config
 
           mv SlimeVR-Tracker-nRF/build/SlimeVR-Tracker-nRF/zephyr/zephyr.${{ matrix.boards.fileformat }} Releases/${{ matrix.boards.filename }}.${{ matrix.boards.fileformat }}
 
