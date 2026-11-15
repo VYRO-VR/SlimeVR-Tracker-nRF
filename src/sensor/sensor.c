@@ -350,7 +350,7 @@ int sensor_scan(void)
 	else if (mag_id < 0)
 		LOG_WRN("No magnetometer detected");
 	else
-		LOG_INF("Found %s", dev_mag_names[mag_id]);
+		LOG_INF("Found %s%s", dev_mag_names[mag_id], (mag_id == MAG_QMC6309 && (sensor_mag_dev.addr & 0x7F) == 0x0C) ? "H" : "");
 	if (mag_id >= 0) // if there is no magnetometer we do not care as much
 	{
 		if (mag_id >= (int)ARRAY_SIZE(sensor_mags) || sensor_mags[mag_id] == NULL || sensor_mags[mag_id] == &sensor_mag_none)
@@ -362,6 +362,8 @@ int sensor_scan(void)
 		else
 		{
 			sensor_mag = sensor_mags[mag_id];
+			if (mag_id == MAG_QMC6309)
+				qmc_set_variant((sensor_mag_dev.addr & 0x7F) == 0x0C); // QMC6309H is at 0x0C
 			mag_available = true;
 		}
 	}

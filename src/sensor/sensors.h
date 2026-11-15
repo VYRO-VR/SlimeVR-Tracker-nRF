@@ -197,7 +197,7 @@ const uint8_t i2c_dev_mag_reg[] = {
 };
 const uint8_t i2c_dev_mag_id[] = {
 	2,	0x09,0xA3, // reg 0x01
-	2,	0x08,0x48, // reg 0x00
+	3,	0x08,0x48,0x90, // reg 0x00, 0x90 is QMC6309H (QMC6309 is at 0x7C)
 	1,	0xA3, // reg 0x01
 	2,	0x08,0x48, // reg 0x00
 	1,	0xFF, // reg 0x0D
@@ -219,7 +219,7 @@ const uint8_t i2c_dev_mag_id[] = {
 };
 const int i2c_dev_mag[] = {
 	MAG_AK09916, MAG_AK09940,
-	MAG_IST8308, MAG_AK8963,
+	MAG_IST8308, MAG_AK8963, MAG_QMC6309,
 	MAG_AK09940,
 	MAG_IST8308, MAG_AK8963,
 	MAG_QMC5883L,
