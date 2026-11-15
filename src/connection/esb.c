@@ -102,6 +102,8 @@ void found_dongle(uint64_t dongle_hwid, uint8_t channel, int32_t received_time) 
 }
 
 // TODO Split into multiple functions
+static volatile bool clear_pair_requested = false;
+
 void event_handler(struct esb_evt const *event)
 {
 	switch (event->evt_id)
@@ -193,10 +195,11 @@ void event_handler(struct esb_evt const *event)
 								connection_set_id(tracker_id);
 								esb_set_tracker_state(CONNECTED);
 							} else {
-								if(tracker_id == ESB_STATUS_NOT_PAIRED) {
-									pairing_clear_pair();
-								} else if(tracker_id == ESB_STATUS_NO_SLOTS) {
-									pairing_clear_pair();
+								if(tracker_id == ESB_STATUS_NOT_PAIRED || tracker_id == ESB_STATUS_NO_SLOTS) {
+									// Interrupt context: flash writes are not allowed here,
+									// the ESB thread clears the pairing
+									clear_pair_requested = true;
+									esb_set_tracker_state(NOT_PAIRED);
 								} else {
 									esb_set_tracker_state(CONNECTION_ERROR);
 								}
@@ -615,6 +618,10 @@ static void esb_thread(void)
 		k_msleep(1);
 		continue;
 #endif
+		if(clear_pair_requested) {
+			clear_pair_requested = false;
+			pairing_clear_pair(); // Dongle rejected us, forget it and go back to pairing
+		}
 		switch(esb_tracker_state) {
 			case PAIRING_REJECTED:
 				// pairing_rejected_counter++;
