@@ -65,8 +65,15 @@ static uint8_t last_state = 0xff;
 static bool lastOvfl = false;
 static int64_t oneshot_trigger_time = 0;
 static float last_real_time = 0.0f;
+static bool qmc6309h = false; // QMC6309H (address 0x0C) does not support 1Hz and 10Hz ODR
 
 LOG_MODULE_REGISTER(QMC6309, LOG_LEVEL_INF);
+
+void qmc_set_variant(bool is_qmc6309h)
+{
+	qmc6309h = is_qmc6309h;
+	last_state = 0xff;
+}
 
 int qmc_init(float time, float *actual_time)
 {
@@ -122,7 +129,7 @@ int qmc_update_odr(float time, float *actual_time)
 		MODR = ODR_100Hz;
 		time = 1.f / 100;
 	}
-	else if (ODR > 25)
+	else if (qmc6309h || ODR > 25) // lowest ODR on QMC6309H
 	{
 		MODR = ODR_50Hz;
 		time = 1.f / 50;
